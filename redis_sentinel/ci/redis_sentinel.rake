@@ -18,7 +18,7 @@ namespace :ci do
                            "--cache-dir #{ENV['PIP_CACHE']}",
                            "#{ENV['VOLATILE_DIR']}/ci.log", use_venv)
       sh %(docker-compose -f #{ENV['TRAVIS_BUILD_DIR']}/redis_sentinel/ci/resources/docker-compose.yml up -d)
-      wait_on_docker_logs('redis-sentinel', 5, '[redis-sentinel], started')
+      wait_on_docker_logs('resources_sentinel_1', 5, 'monitor master mymaster 172.17.0.2 6379 quorum 2')
     end
 
     task before_script: ['ci:common:before_script']
