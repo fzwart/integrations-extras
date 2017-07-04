@@ -14,8 +14,6 @@ instance = {
 }
 
 
-# NOTE: Feel free to declare multiple test classes if needed
-
 @attr(requires='redis_sentinel', mock=False)  # set mock to True if appropriate
 class TestRedis_sentinel(AgentCheckTest):
     """Basic Test for redis_sentinel integration."""

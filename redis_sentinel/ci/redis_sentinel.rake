@@ -1,7 +1,7 @@
 require 'ci/common'
 
 def redis_sentinel_version
-  ENV['FLAVOR_VERSION'] || '2.4.12'
+  ENV['FLAVOR_VERSION'] || 'latest'
 end
 
 def redis_sentinel_rootdir
@@ -17,25 +17,25 @@ namespace :ci do
       install_requirements('redis_sentinel/requirements.txt',
                            "--cache-dir #{ENV['PIP_CACHE']}",
                            "#{ENV['VOLATILE_DIR']}/ci.log", use_venv)
-      # sample docker usage
-      # sh %(docker create -p XXX:YYY --name redis_sentinel source/redis_sentinel)
-      # sh %(docker start redis_sentinel)
+      sh %(docker-compose -f #{ENV['TRAVIS_BUILD_DIR']}/redis_sentinel/ci/resources/docker-compose.yml up -d)
+      wait_on_docker_logs('redis-sentinel', 5, '[redis-sentinel], started')
     end
 
     task before_script: ['ci:common:before_script']
 
     task :script, [:mocked] => ['ci:common:script'] do |_, attr|
-      ci_home = File.dirname(__FILE__)
-      mocked = attr[:mocked] || false
       this_provides = [
         'redis_sentinel'
       ]
-      Rake::Task['ci:common:run_tests'].invoke(this_provides, ci_home, mocked)
+      Rake::Task['ci:common:run_tests'].invoke(this_provides)
     end
 
     task before_cache: ['ci:common:before_cache']
 
-    task cleanup: ['ci:common:cleanup']
+    task cleanup: ['ci:common:cleanup'] do
+      sh %(docker-compose -f #{ENV['TRAVIS_BUILD_DIR']}/redis_sentinel/ci/resources/docker-compose.yml stop)
+      sh %(docker-compose -f #{ENV['TRAVIS_BUILD_DIR']}/redis_sentinel/ci/resources/docker-compose.yml rm -f)
+    end
 
     task :execute, :mocked do |_, attr|
       mocked = attr[:mocked] || false
